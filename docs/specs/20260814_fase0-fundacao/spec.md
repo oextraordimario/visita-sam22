@@ -1,7 +1,7 @@
 # Spec — Fase 0: fundação técnica e greybox andável
 
 **Data:** 2026-08-14
-**Status:** **PROPOSTA** — aguardando execução. As decisões de rumo estão na §12.
+**Status:** **EXECUTADA** em 2026-08-14 (fatias 1–5; a fatia 6 — direção de arte — segue aberta). Decisões de rumo na §12; **o que a execução desmentiu do plano está na §14** — é a leitura mais curta sobre por que o código ficou assim.
 **Base:** [PRD v0.3](../../PRD.md) (§6 abordagem técnica, §9 roadmap) e [pesquisa §5](../../pesquisa-sam-1922.md) (o Theatro em 1922).
 **Escopo herdado do PRD:** "definir direção de arte com concepts; greybox do teatro (5 espaços) com controlador FPS andável no navegador. *Critério: andar do saguão à plateia com 60 fps.*"
 
@@ -224,4 +224,41 @@ O documento registra o que foi rejeitado e por quê (mesmo formato das decisões
 
 ---
 
-*(§14 — "O que a execução mudou" — será escrita quando a fase rodar, no padrão da spec de referência.)*
+## 14. O que a execução mudou (2026-08-14)
+
+Executada no mesmo dia, fatias 1–5. O plano macro sobreviveu (stack, cotas, greybox paramétrico, critério batido), mas **a colisão contra glTF real desmentiu três suposições**, e a depuração em navegador headless ensinou uma quarta.
+
+### 14.1 O placar
+
+| fatia | resultado |
+|---|---|
+| 1. scaffold | FPS + degraus de teste + deploy; 7 testes de `vetorMovimento` |
+| 2. cotas | CC-BY 4.0 confirmada via API do Sketchfab; duas dissertações USP + Base Padrão renderam medidas melhores que o previsto (boca original 15,80 m; foyer 30×8×12 [T]) |
+| 3. greybox | `gerar_greybox.py` (bpy) → 241 objetos em 5 collections, incl. os 100 volumes do catálogo; glb total **377 kB** |
+| 4. colisão | percursos completos a 61 fps: saguão→corredor→plateia e saguão→42 degraus→salão nobre |
+| 5. medição | **Intel UHD** (abaixo da Iris Xe de referência), 1080p, build de produção: **1.826 frames, p50=p95=16,7 ms, máx 16,8, zero frames >20 ms; 1,5 MB transferidos** (teto 5 MB). O "p95 ≤ 16,6 ms" da §10 era, na prática, o próprio período do vsync (16,67 ms) — o critério real é "nenhum frame perdido", e foi o que se mediu |
+
+### 14.2 Colisão automática do rapier era inutilizável — três causas empilhadas
+
+O plano dizia "malha de colisão = a própria malha do greybox" (§3.2). Rodando:
+
+1. `visible={false}` no chão provisório fazia o rapier **ignorar o mesh** (precisa `includeInvisible`) — o jogador caía no vazio e o sintoma (modelo "no céu") fingia ser bug de eixos.
+2. `colliders="trimesh"` automático sobre o glb produzia **7 colliders com superfícies fantasma** (raycast batia a 11 m de altura no saguão): o gltf-transform intercala posição+normal no mesmo buffer, e ler `attributes.position.array` cru mistura os dois. A extração correta é `getX/getY/getZ` por vértice.
+3. Corrigido isso, a cápsula ainda **prendia em pontos arbitrários do piso plano** — o clássico internal-edge catching do character controller contra triângulos grandes de trimesh.
+
+A resposta virou desenho: **colisão por forma, decidida pelo gerador**. Cada `caixa()` grava extras glTF (`colisao/c_centro/c_tam`) e vira `CuboidCollider` convexo; o rake (prisma) vira `ConvexHullCollider`; só as superfícies curvas (côncavas) ficam trimesh — e nenhuma delas é piso onde se anda hoje. O "collision mesh separada" que a §3.2 previa para a Fase 1 chegou adiantado, na forma de metadado paramétrico. Consequência no pipeline: `--join false` (fundir malhas apagaria os extras por objeto).
+
+### 14.3 Compressão de assets: adiada com motivo
+
+A fatia 3 ia "medir draco vs meshopt e fixar um". Medido: draco exige decoder de **CDN externa** (rejeitado); meshopt aplica `KHR_mesh_quantization`, que era suspeito no bug 14.2-(2) — e mesmo inocentado depois (a causa era interleaving), o greybox tem **377 kB** e o gzip da Vercel resolve. Decisão registrada: **sem compressão geométrica na Fase 0**; reavaliar quando houver asset denso, com o requisito novo "decoder embarcado, sem CDN".
+
+### 14.4 Depurar jogo em headless mente sobre timing
+
+O Chromium headless caiu em software-WebGL a ~5 fps: com o clamp de dt (0,05 s), a velocidade efetiva despenca e o autostep engasga — horas de "bugs" que não existiam a 60 fps. Com `--use-angle=d3d11` o headless usa a GPU real (o relatório do WebGL confirma "Intel UHD") e tudo passou. Ferramentas que nasceram dessa dor e ficaram: câmera de inspeção `?cam=x,y,z&alvo=x,y,z`, canal `window.__jogadorPos`/`__mundo`/`__rapier` para sondas, e o navegador por waypoints em malha fechada nos scripts Playwright (contorna obstáculo alternando eixo quando estagna).
+
+### 14.5 Miudezas que valem registro
+
+- O `.blend` não é editado à mão: a fonte é o **script paramétrico** (`gerar_greybox.py`), e o `.blend` é artefato dele — inverte o desenho da §3.2, e é melhor assim (cota muda em um lugar só, o D4 continua valendo para a Fase 1).
+- A passarela de chegada ao foyer criou um vão entre zonas do manifest (jogador "em lugar nenhum") — zona da escadaria esticada até z −3,25; sobreposições são resolvidas pela ordem do manifest (teste cobre).
+- Palco hoje é inalcançável a pé (fosso + parapeito barram, como no teatro real) — acesso por coxia/porta lateral fica para a Fase 1.
+- Vulnerabilidade alta reportada no `sharp` (dep do gltf-transform CLI): ferramenta de build processando arquivos próprios, risco aceito.
