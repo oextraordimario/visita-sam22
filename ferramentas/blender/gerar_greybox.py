@@ -183,7 +183,10 @@ def gerar_saguao():
     total = sum(comprimentos)
     parede_itens = [("pintura", i + 1) for i in range(64)] + [("arq", i + 1) for i in range(19)]
     fila = list(parede_itens)
-    for (a, b, _n), comp in zip(trechos, comprimentos):
+    for (a, b, n), comp in zip(trechos, comprimentos):
+        # quadro deitado no plano da parede: largura acompanha o trecho,
+        # espessura (0,08) fica no eixo da normal
+        tam = (0.08, 1.1, 0.9) if n[0] != 0 else (0.9, 1.1, 0.08)
         quota = round(len(parede_itens) * comp / total / 2) * 2  # par: 2 alturas
         lote, fila = fila[:quota], fila[quota:]
         por_altura = max(1, len(lote) // 2)
@@ -193,15 +196,16 @@ def gerar_saguao():
             x = a[0] + (b[0] - a[0]) * t
             z = a[1] + (b[1] - a[1]) * t
             y = 1.7 if linha == 0 else 3.1
-            caixa(col, f"obra_{tipo}_{num:02d}", (x, y, z), (0.9, 1.1, 0.08), "obra")
+            caixa(col, f"obra_{tipo}_{num:02d}", (x, y, z), tam, "obra")
     for tipo, num in fila:  # sobras (arredondamento) na parede do fundo
         caixa(col, f"obra_{tipo}_{num:02d}", (0, 5.6, Z_SAGUAO_FIM + 0.2), (0.9, 1.1, 0.08), "obra")
-    # esculturas: pedestais em duas fileiras centrais
+    # esculturas: pedestais em duas fileiras centrais (1,28 m: acima da cintura,
+    # abaixo do rosto — 1,6 ficava na cara do jogador)
     for i in range(17):
         linha, pos = divmod(i, 9)
         x = -12 + pos * 3.0
         z = -1.8 if linha == 0 else 1.8
-        caixa(col, f"obra_esc_{i + 1:02d}", (x, 0.8, z), (0.5, 1.6, 0.5), "obra")
+        caixa(col, f"obra_esc_{i + 1:02d}", (x, 0.64, z), (0.5, 1.28, 0.5), "obra")
 
 
 # ═══ escadaria (caixa + corredores do térreo) ══════════════════════════════
@@ -241,7 +245,9 @@ def gerar_escadaria():
 def gerar_foyer():
     col = nova_col("foyer")
     zc = (Z_FACHADA + -3.25) / 2  # 0,75
-    y0 = NOBRE_Y - 0.02  # 6,7
+    # piso no nível exato da chegada da escadaria (6,72): 2 cm acima do teto do
+    # saguão (topo em 6,7) — coplanar dava z-fighting (teto "piscava" roxo)
+    y0 = NOBRE_Y
     mx = FOYER_L / 2
     caixa(col, "foyer_piso", (0, y0 - 0.1, zc), (FOYER_L, 0.2, FOYER_P), "foyer")
     caixa(col, "foyer_teto", (0, y0 + FOYER_H + 0.1, zc), (FOYER_L, 0.2, FOYER_P), "foyer")
