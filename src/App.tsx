@@ -1,10 +1,22 @@
-import { Suspense, lazy } from 'react'
-import { Canvas } from '@react-three/fiber'
+import { Suspense, lazy, useEffect } from 'react'
+import { Canvas, useThree } from '@react-three/fiber'
 import { Physics } from '@react-three/rapier'
-import { CenarioTeste } from './cenas/CenarioTeste'
+import { CenaTeatro } from './cenas/CenaTeatro'
 import { useJogador } from './estado/jogador'
 import { ALTURA_CAMERA } from './jogador/constantes'
+import { poseDebug, type PoseDebug } from './jogador/debug'
 import { Jogador } from './jogador/Jogador'
+
+function CameraDebug({ pose }: { pose: PoseDebug }) {
+  const camera = useThree((s) => s.camera)
+  useEffect(() => {
+    camera.position.set(...pose.cam)
+    camera.lookAt(...pose.alvo)
+  }, [camera, pose])
+  return null
+}
+
+const DEBUG = typeof window !== 'undefined' ? poseDebug() : null
 
 // r3f-perf só em dev: fora do bundle de produção via import dinâmico
 const Perf = lazy(() => import('r3f-perf').then((m) => ({ default: m.Perf })))
@@ -25,8 +37,8 @@ export default function App() {
         )}
         <Suspense fallback={null}>
           <Physics>
-            <CenarioTeste />
-            <Jogador />
+            <CenaTeatro />
+            {DEBUG ? <CameraDebug pose={DEBUG} /> : <Jogador />}
           </Physics>
         </Suspense>
       </Canvas>

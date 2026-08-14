@@ -2,3 +2,6 @@ node_modules/
 dist/
 .vercel/
 *.blend1
+
+.vercel
+ferramentas/blender/export/
