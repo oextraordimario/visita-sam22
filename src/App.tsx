@@ -50,6 +50,7 @@ export default function App() {
             <h1>visita-sam22 — cenário de teste</h1>
             <p>Clique para entrar</p>
             <p className="overlay-teclas">WASD anda · Shift acelera · mouse olha · ESC solta</p>
+            <p className="overlay-teclas">V sandbox (voa e atravessa paredes) · Space sobe · C desce</p>
           </div>
         </div>
       )}

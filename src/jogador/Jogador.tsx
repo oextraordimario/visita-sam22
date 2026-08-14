@@ -20,6 +20,7 @@ import {
   SPAWN,
   VEL_ACELERADA,
   VEL_ANDAR,
+  VEL_VOO,
 } from './constantes'
 import { useTeclas } from './input'
 import { vetorMovimento } from './teclas'
@@ -44,7 +45,17 @@ export function Jogador() {
   }, [world, rapier])
   const setTravado = useJogador((s) => s.setTravado)
   const setEspacoAtivo = useJogador((s) => s.setEspacoAtivo)
+  const sandbox = useJogador((s) => s.sandbox)
+  const alternarSandbox = useJogador((s) => s.alternarSandbox)
   const espacoAnterior = useRef<string | null>('saguao')
+
+  useEffect(() => {
+    const aoTeclar = (e: KeyboardEvent) => {
+      if (e.code === 'KeyV' && !e.repeat) alternarSandbox()
+    }
+    window.addEventListener('keydown', aoTeclar)
+    return () => window.removeEventListener('keydown', aoTeclar)
+  }, [alternarSandbox])
 
   const controlador = useRef<ReturnType<typeof world.createCharacterController>>(null)
   useEffect(() => {
@@ -67,28 +78,42 @@ export function Jogador() {
     // trava o passo em recuperação de aba parada: dt gigante teleporta
     const dt = Math.min(delta, 0.05)
     const { x, z, acelerado } = vetorMovimento(teclas.current)
-    const vel = acelerado ? VEL_ACELERADA : VEL_ANDAR
 
     camera.getWorldDirection(dirFrente)
-    dirFrente.y = 0
-    dirFrente.normalize()
-    dirDireita.crossVectors(dirFrente, CIMA) // frente × cima = direita (Y-up, mão direita)
+    if (!sandbox) {
+      dirFrente.y = 0 // no chão o olhar pra cima/baixo não muda o rumo; voando muda
+      dirFrente.normalize()
+    }
+    dirDireita.crossVectors(dirFrente, CIMA).normalize() // frente × cima = direita (Y-up, mão direita)
 
-    velY.current += GRAVIDADE * dt
-    desloc
-      .set(0, velY.current * dt, 0)
-      .addScaledVector(dirFrente, z * vel * dt)
-      .addScaledVector(dirDireita, x * vel * dt)
-
-    ctrl.computeColliderMovement(colisor, desloc)
-    const mov = ctrl.computedMovement()
+    let mov: { x: number; y: number; z: number }
+    if (sandbox) {
+      // voo livre: sem gravidade e sem character controller — o corpo
+      // cinemático é reposicionado direto, então atravessa qualquer colisor
+      const vel = acelerado ? 2 * VEL_VOO : VEL_VOO
+      const sobe = (teclas.current.has('Space') ? 1 : 0) - (teclas.current.has('KeyC') ? 1 : 0)
+      velY.current = 0 // sair do sandbox começa a queda do zero
+      mov = desloc
+        .set(0, sobe * vel * dt, 0)
+        .addScaledVector(dirFrente, z * vel * dt)
+        .addScaledVector(dirDireita, x * vel * dt)
+    } else {
+      const vel = acelerado ? VEL_ACELERADA : VEL_ANDAR
+      velY.current += GRAVIDADE * dt
+      desloc
+        .set(0, velY.current * dt, 0)
+        .addScaledVector(dirFrente, z * vel * dt)
+        .addScaledVector(dirDireita, x * vel * dt)
+      ctrl.computeColliderMovement(colisor, desloc)
+      mov = ctrl.computedMovement()
+      if (ctrl.computedGrounded()) velY.current = 0
+    }
     const pos = corpo.translation()
     corpo.setNextKinematicTranslation({
       x: pos.x + mov.x,
       y: pos.y + mov.y,
       z: pos.z + mov.z,
     })
-    if (ctrl.computedGrounded()) velY.current = 0
 
     camera.position.set(pos.x + mov.x, pos.y + mov.y + OFFSET_CAMERA, pos.z + mov.z)
 

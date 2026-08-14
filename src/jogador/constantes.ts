@@ -10,6 +10,7 @@ export const OFFSET_CAMERA = ALTURA_CAMERA - ALTURA_CAPSULA / 2
 
 export const VEL_ANDAR = 6
 export const VEL_ACELERADA = 9
+export const VEL_VOO = 12 // modo sandbox; Shift dobra
 export const DEGRAU_MAX = 0.26 // 0,25 do critério de teste + margem numérica
 export const GRAVIDADE = -9.81
 

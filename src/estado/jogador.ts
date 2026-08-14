@@ -8,6 +8,9 @@ type EstadoJogador = {
   /** espaço do teatro em que o jogador está (zonas do manifest) */
   espacoAtivo: EspacoId | null
   setEspacoAtivo: (e: EspacoId | null) => void
+  /** modo sandbox: voo livre, sem gravidade nem colisão (tecla V) */
+  sandbox: boolean
+  alternarSandbox: () => void
 }
 
 export const useJogador = create<EstadoJogador>((set) => ({
@@ -15,4 +18,6 @@ export const useJogador = create<EstadoJogador>((set) => ({
   setTravado: (v) => set({ travado: v }),
   espacoAtivo: 'saguao',
   setEspacoAtivo: (e) => set({ espacoAtivo: e }),
+  sandbox: false,
+  alternarSandbox: () => set((s) => ({ sandbox: !s.sandbox })),
 }))
