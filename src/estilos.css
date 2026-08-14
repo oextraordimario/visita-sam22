@@ -1,0 +1,50 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body,
+#raiz {
+  height: 100%;
+  overflow: hidden;
+  background: #181820;
+}
+
+canvas {
+  display: block;
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none; /* o clique atravessa e trava o pointer lock no canvas */
+  color: #e8e4da;
+  font-family: system-ui, sans-serif;
+  text-align: center;
+}
+
+.overlay-caixa {
+  background: rgba(24, 24, 32, 0.75);
+  padding: 2rem 3rem;
+  border-radius: 8px;
+}
+
+.overlay-caixa h1 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+.overlay-caixa p {
+  font-size: 1rem;
+}
+
+.overlay-teclas {
+  margin-top: 0.5rem;
+  opacity: 0.7;
+  font-size: 0.85rem;
+}
