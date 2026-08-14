@@ -8,8 +8,8 @@ export const MEIA_ALTURA_CILINDRO = ALTURA_CAPSULA / 2 - RAIO_CAPSULA
 // câmera fica acima do centro da cápsula, a 1,65 m do chão
 export const OFFSET_CAMERA = ALTURA_CAMERA - ALTURA_CAPSULA / 2
 
-export const VEL_ANDAR = 2
-export const VEL_ACELERADA = 4
+export const VEL_ANDAR = 6
+export const VEL_ACELERADA = 9
 export const DEGRAU_MAX = 0.26 // 0,25 do critério de teste + margem numérica
 export const GRAVIDADE = -9.81
 
