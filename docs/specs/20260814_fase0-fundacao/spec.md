@@ -171,6 +171,8 @@ Entregável: `docs/direcao-de-arte.md` + 2–3 concepts do **saguão com a expos
 
 O documento registra o que foi rejeitado e por quê (mesmo formato das decisões desta spec). Sem asset de produção nesta fase.
 
+**Formato dos concepts (decidido em 2026-08-14):** mocks 3D no próprio engine — aplicar paleta, materiais e iluminação de teste no greybox do saguão e capturar screenshots de ângulos escolhidos — com um moodboard curto de apoio (fotos do Theatro, jogos de estética próxima, cartazes de 1922, com links). Justificativa: o mock no engine valida como as cores se comportam na luz real do Three.js, é iterável com hot reload e o resultado já é meio caminho da Fase 1; ilustração externa foi descartada por sair do pipeline e não validar nada renderizável.
+
 ---
 
 ## 9. Ordem de implementação (cada fatia sozinha em pé)
