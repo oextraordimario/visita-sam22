@@ -6,6 +6,7 @@ import { useJogador } from './estado/jogador'
 import { ALTURA_CAMERA } from './jogador/constantes'
 import { poseDebug, type PoseDebug } from './jogador/debug'
 import { Jogador } from './jogador/Jogador'
+import { HudDebug } from './ui/HudDebug'
 
 function CameraDebug({ pose }: { pose: PoseDebug }) {
   const camera = useThree((s) => s.camera)
@@ -42,6 +43,7 @@ export default function App() {
           </Physics>
         </Suspense>
       </Canvas>
+      <HudDebug />
       {!travado && (
         <div className="overlay">
           <div className="overlay-caixa">

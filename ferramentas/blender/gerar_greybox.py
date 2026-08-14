@@ -91,7 +91,13 @@ def caixa(col, nome, centro, tam, cor):
         (0, 4, 5, 1), (2, 3, 7, 6),  # y−, y+
         (0, 2, 6, 4), (1, 5, 7, 3),  # z−, z+
     ]
-    return _obj(col, nome, verts, faces, cor)
+    obj = _obj(col, nome, verts, faces, cor)
+    # metadados de colisão (extras do glTF, em coordenadas do jogo): cuboide
+    # convexo no runtime — trimesh de piso prende a cápsula em aresta interna
+    obj["colisao"] = "caixa"
+    obj["c_centro"] = [float(cx), float(cy), float(cz)]
+    obj["c_tam"] = [float(t) for t in tam]
+    return obj
 
 
 def arco(col, nome, r_int, r_ext, y0, y1, ang0, ang1, cor, seg=12):
@@ -114,7 +120,9 @@ def arco(col, nome, r_int, r_ext, y0, y1, ang0, ang1, cor, seg=12):
             (b + 0, c + 0, c + 2, b + 2),  # base
         ]
     faces += [(0, 2, 3, 1), (4 * seg + 0, 4 * seg + 1, 4 * seg + 3, 4 * seg + 2)]  # tampas
-    return _obj(col, nome, verts, faces, cor)
+    obj = _obj(col, nome, verts, faces, cor)
+    obj["colisao"] = "trimesh"  # parede/prateleira curva: côncava, fica trimesh
+    return obj
 
 
 def prisma(col, nome, topo4, base_y, cor):
@@ -124,7 +132,9 @@ def prisma(col, nome, topo4, base_y, cor):
         (0, 1, 2, 3), (7, 6, 5, 4),
         (0, 4, 5, 1), (1, 5, 6, 2), (2, 6, 7, 3), (3, 7, 4, 0),
     ]
-    return _obj(col, nome, verts, faces, cor)
+    obj = _obj(col, nome, verts, faces, cor)
+    obj["colisao"] = "casco"  # sólido convexo (rake da plateia): convex hull
+    return obj
 
 
 def escada(col, nome, x, y0, z0, dz, n, cor, largura=LANCE_LARG):
@@ -318,7 +328,9 @@ def main():
         for obj in col.objects:
             obj.select_set(True)
         destino = os.path.join(EXPORT, f"{col.name}.glb")
-        bpy.ops.export_scene.gltf(filepath=destino, export_format="GLB", use_selection=True)
+        bpy.ops.export_scene.gltf(
+            filepath=destino, export_format="GLB", use_selection=True, export_extras=True
+        )
         print(f"EXPORT_OK {col.name} ({len(col.objects)} objetos)")
 
     bpy.ops.wm.save_as_mainfile(filepath=os.path.join(RAIZ, "theatro-greybox.blend"))

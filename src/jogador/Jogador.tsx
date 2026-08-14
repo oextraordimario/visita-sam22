@@ -9,6 +9,7 @@ import {
   type RapierCollider,
   type RapierRigidBody,
 } from '@react-three/rapier'
+import { espacoEm } from '../dados/espacos'
 import { useJogador } from '../estado/jogador'
 import {
   DEGRAU_MAX,
@@ -36,8 +37,14 @@ export function Jogador() {
   const velY = useRef(0)
   const teclas = useTeclas()
   const camera = useThree((s) => s.camera)
-  const { world } = useRapier()
+  const { world, rapier } = useRapier()
+  useEffect(() => {
+    // canal de depuração: sondas de física nos testes automatizados
+    Object.assign(window as object, { __mundo: world, __rapier: rapier })
+  }, [world, rapier])
   const setTravado = useJogador((s) => s.setTravado)
+  const setEspacoAtivo = useJogador((s) => s.setEspacoAtivo)
+  const espacoAnterior = useRef<string | null>('saguao')
 
   const controlador = useRef<ReturnType<typeof world.createCharacterController>>(null)
   useEffect(() => {
@@ -84,6 +91,15 @@ export function Jogador() {
     if (ctrl.computedGrounded()) velY.current = 0
 
     camera.position.set(pos.x + mov.x, pos.y + mov.y + OFFSET_CAMERA, pos.z + mov.z)
+
+    const posNova = { x: pos.x + mov.x, y: pos.y + mov.y, z: pos.z + mov.z }
+    const espaco = espacoEm(posNova)
+    if (espaco !== espacoAnterior.current) {
+      espacoAnterior.current = espaco
+      setEspacoAtivo(espaco)
+    }
+    // canal de depuração para testes automatizados (Playwright lê via evaluate)
+    ;(window as unknown as { __jogadorPos: typeof posNova }).__jogadorPos = posNova
   })
 
   return (

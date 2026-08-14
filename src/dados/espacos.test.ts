@@ -24,6 +24,8 @@ describe('manifest de espaços', () => {
     expect(espacoEm({ x: 0, y: 2, z: -8 })).toBe('escadaria') // lance central
     expect(espacoEm({ x: 7.55, y: 1, z: -10 })).toBe('escadaria') // corredor
     expect(espacoEm({ x: 0, y: 7.6, z: 0.75 })).toBe('foyer') // sobre o saguão
+    expect(espacoEm({ x: 0, y: 7.6, z: -4 })).toBe('escadaria') // passarela de chegada
+    expect(espacoEm({ x: 0, y: 0.9, z: -4 })).toBe('saguao') // térreo sob a passarela: ordem desempata
     expect(espacoEm({ x: 0, y: 0.4, z: -25 })).toBe('sala') // plateia
     expect(espacoEm({ x: 0, y: 0.9, z: -45 })).toBe('palco')
     expect(espacoEm({ x: 0, y: 50, z: 0 })).toBeNull() // fora de tudo

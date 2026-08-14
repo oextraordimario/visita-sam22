@@ -21,8 +21,13 @@ let totalDepois = 0
 for (const arquivo of arquivos) {
   const entrada = join(ORIGEM, arquivo)
   const saida = join(DESTINO, arquivo)
-  // meshopt (não draco): o decoder do meshopt embarca no bundle; o do draco viria de CDN
-  execSync(`npx gltf-transform optimize "${entrada}" "${saida}" --compress meshopt --texture-compress false`, {
+  // Sem compressão nem quantização: KHR_mesh_quantization quebra a geração de
+  // colliders trimesh do rapier (ele lê o array de posições cru). O greybox é
+  // minúsculo e o gzip da Vercel resolve; reavaliar quando houver asset denso.
+  // --join false: fundir malhas destruiria os extras de colisão por objeto
+  execSync(
+    `npx gltf-transform optimize "${entrada}" "${saida}" --compress false --simplify false --join false --texture-compress false`,
+    {
     stdio: ['ignore', 'ignore', 'inherit'],
   })
   const antes = statSync(entrada).size

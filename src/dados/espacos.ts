@@ -22,7 +22,8 @@ export const ESPACOS: Espaco[] = [
     id: 'escadaria',
     nome: 'Escadaria nobre',
     glb: '/assets/modelos/escadaria.glb',
-    zona: { min: [-9.5, -1, -15.2], max: [9.5, 20, -4.75] },
+    // max z −3,25 (não −4,75): a passarela de chegada ao foyer é da escadaria
+    zona: { min: [-9.5, -1, -15.2], max: [9.5, 20, -3.25] },
   },
   {
     id: 'foyer',
